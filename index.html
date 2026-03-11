@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>יומן אימוני קונג פו</title>
+<meta name="theme-color" content="#C1121F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="קונג פו">
+<style>
+:root {
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --crimson: #C1121F;
+  --dark-red: #780000;
+  --black: #0a0a0a;
+  --charcoal: #1a1a1a;
+  --gold: #D4A017;
+  --light-gold: #F0C040;
+  --paper: #f5f0e8;
+  --muted: #777;
+}
+html { background:#0a0a0a; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family:var(--font-body);
+  background:var(--black);
+  color:var(--paper);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+body::before {
+  content:''; position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(193,18,31,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(212,160,23,0.04) 0%, transparent 50%);
+  pointer-events:none; z-index:0;
+}
+
+.app { position:relative; z-index:1; max-width:720px; margin:0 auto; padding:20px 16px 80px; }
+
+/* HEADER */
+header { text-align:center; padding:28px 0 18px; }
+header::after {
+  content:''; display:block; height:2px; margin-top:16px;
+  background:linear-gradient(90deg,transparent,var(--crimson),var(--gold),var(--crimson),transparent);
+}
+.header-badge {
+  font-size:48px; margin-bottom:8px;
+  filter:drop-shadow(0 0 20px rgba(193,18,31,0.6));
+  animation:pulse-glow 3s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%,100% { filter:drop-shadow(0 0 18px rgba(193,18,31,0.5)); }
+  50%      { filter:drop-shadow(0 0 32px rgba(212,160,23,0.8)); }
+}
+h1 {
+  font-family:var(--font-display); font-size:clamp(20px,5vw,32px); font-weight:900; letter-spacing:2px;
+  background:linear-gradient(135deg,var(--paper) 0%,var(--light-gold) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.subtitle { font-size:11px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; margin-top:5px; }
+
+/* DATE */
+.date-strip {
+  background:var(--charcoal); border:1px solid rgba(212,160,23,0.2);
+  border-radius:12px; padding:12px 18px;
+  display:flex; justify-content:space-between; align-items:center;
+  margin:14px 0; flex-wrap:wrap; gap:8px;
+}
+.date-text { font-family:var(--font-display); font-size:13px; color:var(--light-gold); }
+.streak-badge {
+  background:linear-gradient(135deg,var(--dark-red),var(--crimson));
+  border-radius:20px; padding:5px 14px; font-size:12px; font-weight:700; color:#fff;
+  display:flex; align-items:center; gap:5px;
+}
+
+/* TABS */
+.tabs { display:flex; gap:4px; background:var(--charcoal); border-radius:12px; padding:4px; margin:14px 0; }
+.tab {
+  flex:1; padding:10px 6px; text-align:center; border-radius:9px;
+  font-size:13px; font-weight:700; cursor:pointer; border:none;
+  background:transparent; color:var(--muted); transition:all 0.2s;
+  font-family:var(--font-body); touch-action:manipulation;
+}
+.tab.active { background:linear-gradient(135deg,var(--dark-red),var(--crimson)); color:#fff; }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* TIME SELECTOR */
+.time-selector {
+  background:var(--charcoal); border:1px solid rgba(255,255,255,0.08);
+  border-radius:14px; padding:16px 18px; margin-bottom:14px;
+}
+.section-label {
+  font-size:10px; letter-spacing:4px; text-transform:uppercase;
+  color:var(--crimson); margin-bottom:12px;
+  display:flex; align-items:center; gap:10px;
+}
+.section-label::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(193,18,31,0.4),transparent); }
+
+.time-presets { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.time-preset {
+  padding:8px 16px; border-radius:20px; font-size:13px; font-weight:700;
+  cursor:pointer; border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.06); color:var(--muted);
+  font-family:var(--font-body); touch-action:manipulation;
+  transition:all 0.18s;
+}
+.time-preset.active { background:linear-gradient(135deg,var(--dark-red),var(--crimson)); border-color:transparent; color:#fff; }
+
+.time-slider-row { display:flex; align-items:center; gap:12px; }
+.time-slider {
+  flex:1; -webkit-appearance:none; appearance:none;
+  height:6px; border-radius:99px; background:rgba(255,255,255,0.1); outline:none; cursor:pointer;
+}
+.time-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; width:22px; height:22px;
+  border-radius:50%; background:var(--crimson);
+  box-shadow:0 0 8px rgba(193,18,31,0.5); cursor:pointer;
+}
+.time-value { font-family:var(--font-display); font-size:18px; font-weight:700; color:var(--light-gold); min-width:70px; text-align:left; }
+
+/* GENERATE BUTTON */
+.btn-generate {
+  width:100%; padding:14px; border-radius:12px; border:none;
+  background:linear-gradient(135deg,var(--dark-red),var(--crimson));
+  color:#fff; font-family:var(--font-body); font-size:15px; font-weight:700;
+  cursor:pointer; margin-bottom:16px; box-shadow:0 4px 20px rgba(193,18,31,0.35);
+  touch-action:manipulation; transition:all 0.2s;
+}
+.btn-generate:active { opacity:0.85; transform:scale(0.98); }
+
+/* SESSION BLOCK */
+.session-block {
+  background:var(--charcoal); border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px; margin-bottom:10px; overflow:hidden; transition:border-color 0.22s;
+}
+.session-block.done { border-color:rgba(193,18,31,0.35); }
+.session-block.active-timer { border-color:rgba(212,160,23,0.4); }
+
+.session-block-header {
+  display:flex; align-items:center; gap:12px; padding:14px 16px;
+  cursor:pointer; position:relative; touch-action:manipulation;
+  -webkit-user-select:none; user-select:none;
+}
+.session-block-header::before {
+  content:''; position:absolute; top:0; right:0; width:3px; height:100%;
+  background:var(--crimson); opacity:0; transition:opacity 0.22s;
+  border-radius:0 14px 14px 0;
+}
+.session-block.done .session-block-header::before { opacity:1; }
+
+.block-check {
+  width:24px; height:24px; border-radius:50%; flex-shrink:0;
+  border:2px solid rgba(255,255,255,0.15);
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; transition:all 0.22s;
+}
+.session-block.done .block-check { background:var(--crimson); border-color:var(--crimson); color:#fff; }
+
+.block-icon { font-size:22px; flex-shrink:0; }
+.block-info { flex:1; }
+.block-name { font-size:15px; font-weight:700; color:var(--paper); }
+.block-meta { font-size:12px; color:var(--muted); margin-top:2px; }
+.block-duration { font-family:var(--font-display); font-size:13px; font-weight:700; color:var(--light-gold); flex-shrink:0; }
+
+/* BLOCK TIMER BAR */
+.block-timer { display:none; padding:6px 16px 10px; border-top:1px solid rgba(255,255,255,0.05); }
+.block-timer.running { display:block; }
+.block-timer-bar-bg { background:rgba(255,255,255,0.07); border-radius:99px; height:4px; overflow:hidden; margin-bottom:5px; }
+.block-timer-bar { height:100%; border-radius:99px; width:100%; background:linear-gradient(90deg,var(--crimson),var(--gold)); transition:width 1s linear; }
+.block-timer-label { font-size:12px; color:var(--light-gold); font-family:var(--font-display); letter-spacing:1px; }
+
+/* BLOCK BODY */
+.block-body { padding:0 16px 14px 16px; }
+.block-simple-desc { font-size:13px; color:rgba(245,240,232,0.6); line-height:1.65; }
+
+.drill-card {
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07);
+  border-radius:10px; padding:12px 14px; margin-top:8px;
+  display:flex; align-items:flex-start; gap:10px;
+}
+.drill-code {
+  background:rgba(193,18,31,0.18); border:1px solid rgba(193,18,31,0.35);
+  border-radius:6px; padding:2px 9px; font-size:13px; font-weight:700;
+  color:var(--crimson); white-space:nowrap; direction:ltr; flex-shrink:0;
+}
+.drill-name { font-size:13px; font-weight:700; color:var(--paper); }
+.drill-desc { font-size:12px; color:rgba(245,240,232,0.55); margin-top:3px; line-height:1.55; }
+.drill-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.drill-tag { background:rgba(255,255,255,0.07); border-radius:20px; padding:2px 10px; font-size:11px; color:var(--paper); }
+
+.form-card {
+  background:linear-gradient(135deg,rgba(120,0,0,0.3),rgba(30,30,30,0.8));
+  border:1px solid rgba(212,160,23,0.2); border-radius:10px; padding:12px 14px; margin-top:8px;
+}
+.form-card-name { font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--paper); }
+.form-card-sub { font-size:12px; color:rgba(245,240,232,0.5); margin-top:2px; }
+
+/* PROGRESS */
+.progress-wrap {
+  background:var(--charcoal); border-radius:12px; padding:14px 18px;
+  margin-bottom:12px; border:1px solid rgba(255,255,255,0.06);
+}
+.progress-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:8px; }
+.progress-bar-bg { background:rgba(255,255,255,0.07); border-radius:99px; height:7px; overflow:hidden; }
+.progress-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--dark-red),var(--crimson),var(--gold)); transition:width 0.6s ease; }
+
+/* SAVE BTN */
+.btn-save {
+  width:100%; padding:14px; border-radius:12px; border:none;
+  background:linear-gradient(135deg,var(--dark-red),var(--crimson));
+  color:#fff; font-family:var(--font-body); font-size:15px; font-weight:700;
+  cursor:pointer; margin-top:14px; box-shadow:0 4px 20px rgba(193,18,31,0.3);
+  touch-action:manipulation; display:none;
+}
+.btn-save:active { opacity:0.85; }
+
+/* TIMER TAB */
+.timer-wrap { background:var(--charcoal); border-radius:16px; padding:24px; border:1px solid rgba(255,255,255,0.06); text-align:center; }
+.timer-display { font-family:var(--font-display); font-size:64px; font-weight:900; letter-spacing:-2px; color:var(--paper); line-height:1; margin:10px 0; transition:color 0.3s; }
+.timer-display.active { color:var(--light-gold); }
+.timer-status { font-size:11px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; }
+.timer-btns { display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+.timer-presets { display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+
+.btn {
+  padding:11px 22px; border-radius:10px; border:none;
+  font-family:var(--font-body); font-size:13px; font-weight:700;
+  cursor:pointer; touch-action:manipulation; transition:all 0.2s;
+}
+.btn-red { background:linear-gradient(135deg,var(--dark-red),var(--crimson)); color:#fff; box-shadow:0 4px 14px rgba(193,18,31,0.3); }
+.btn-ghost { background:rgba(255,255,255,0.07); color:var(--paper); border:1px solid rgba(255,255,255,0.1); }
+.btn-ghost:active, .btn-red:active { opacity:0.8; }
+.btn-small { padding:7px 14px; font-size:12px; }
+
+/* HISTORY */
+.history-item {
+  background:var(--charcoal); border-radius:10px; padding:12px 16px; margin-bottom:8px;
+  border:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;
+}
+.history-main { font-weight:700; font-size:13px; }
+.history-sub { color:var(--muted); font-size:11px; margin-top:2px; }
+.history-score { background:rgba(193,18,31,0.18); color:var(--crimson); border-radius:20px; padding:3px 12px; font-size:12px; font-weight:700; white-space:nowrap; }
+
+/* TOAST */
+.toast {
+  position:fixed; bottom:28px; left:50%;
+  transform:translateX(-50%) translateY(90px);
+  background:var(--crimson); color:#fff;
+  padding:11px 26px; border-radius:30px; font-weight:700; font-size:13px;
+  transition:transform 0.3s ease; z-index:100; white-space:nowrap;
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="header-badge">🥋</div>
+    <h1>יומן אימוני קונג פו</h1>
+    <div class="subtitle">אימון מותאם אישית</div>
+  </header>
+
+  <div class="date-strip">
+    <div class="date-text" id="dateDisplay"></div>
+    <div class="streak-badge">🔥 <span id="streakCount">0</span> ימים רצופים</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="today">אימון היום</button>
+    <button class="tab" data-tab="timer">טיימר</button>
+    <button class="tab" data-tab="history">היסטוריה</button>
+  </div>
+
+  <!-- TODAY -->
+  <div id="tab-today" class="tab-content active">
+    <div class="time-selector">
+      <div class="section-label">כמה זמן יש לך היום?</div>
+      <div class="time-presets" id="timePresets"></div>
+      <div class="time-slider-row">
+        <input type="range" class="time-slider" id="timeSlider" min="20" max="90" step="5" value="30">
+        <div class="time-value" id="timeValue">30 דקות</div>
+      </div>
+    </div>
+    <button class="btn-generate" id="generateBtn">🎲 צור אימון להיום</button>
+    <div id="sessionBlocks"></div>
+    <button class="btn-save" id="saveBtn">💾 שמור אימון</button>
+  </div>
+
+  <!-- TIMER -->
+  <div id="tab-timer" class="tab-content">
+    <div class="section-label" style="margin:16px 0 12px;">טיימר אימון</div>
+    <div class="timer-wrap">
+      <div class="timer-status">זמן נותר</div>
+      <div class="timer-display" id="timerDisplay">30:00</div>
+      <div class="timer-status" id="timerStatus">מוכן</div>
+      <div class="timer-btns">
+        <button class="btn btn-red" id="btnStart">▶ התחל</button>
+        <button class="btn btn-ghost" id="btnPause">⏸ עצור</button>
+        <button class="btn btn-ghost" id="btnReset">↺ איפוס</button>
+      </div>
+      <div class="timer-presets" id="timerPresets"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="tab-history" class="tab-content">
+    <div class="section-label" style="margin:16px 0 12px;">היסטוריית אימונים</div>
+    <div id="historyList">
+      <div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px;">
+        עדיין אין אימונים שמורים<br>
+        <span style="font-size:34px;display:block;margin-top:12px;">🥋</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const FORMS = [
+  { id:1, name:'Mui Fa',   sub:'Plum Blossom Form', emoji:'🌸' },
+  { id:2, name:'Bak Hok',  sub:'White Crane Form',  emoji:'🦢' },
+  { id:3, name:'Lao Ga',   sub:'Old Family Form',   emoji:'🏯' },
+  { id:4, name:'Woo Dip',  sub:'Butterfly Form',    emoji:'🦋' },
+  { id:5, name:'Gong Gee', sub:'Industrial Form',   emoji:'⚙️' },
+];
+
+const DRILLS = [
+  { code:'1א',  name:'3 אגרופים – יד ורגל נגדיים',        desc:'צעד קדימה עם הרגל הנגדית ליד המכה. 3 אגרופים ברצף עם סיבוב ירך בכל מכה.',              sets:'3 סטים', reps:'10 × צד', time:'5 דקות' },
+  { code:'1ב',  name:'3 אגרופים – יד ורגל תואמים',        desc:'צעד קדימה עם הרגל התואמת ליד המכה. 3 אגרופים ברצף. שים לב להבדל בייצור הכוח לעומת 1א.',  sets:'3 סטים', reps:'10 × צד', time:'5 דקות' },
+  { code:'3א',  name:'3 אגרופים – חצאי צעדים',            desc:'3 אגרופים עם חצאי צעדים קדימה. הישאר נמוך ויציב. דגש על תנועת רגליים מהירה.',            sets:'3 סטים', reps:'10 רצפים', time:'5 דקות' },
+  { code:'3ב',  name:'3 בעיטות – בעיטה אחורית',           desc:'מעמדת לחימה, 3 בעיטות אחוריות ברצף. קדם את הברך, דחוף את העקב ישר אחורה.',              sets:'3 סטים', reps:'8 × רגל', time:'5 דקות' },
+  { code:'3ג',  name:'3 בעיטות – צידית רגל קדמית',        desc:'בעיטה צידית עם הרגל הקדמית, 3 ברצף. דחוף את העקב החוצה, סובב את רגל הסמך.',             sets:'3 סטים', reps:'8 × רגל', time:'5 דקות' },
+  { code:'3ד',  name:'3 בעיטות – בעיטה סיבובית אחורית',   desc:'פנה על הרגל הקדמית, סיבוב 180°, בעיטה אחורית. מצא את המטרה במהלך הסיבוב.',              sets:'3 סטים', reps:'6 × רגל', time:'6 דקות' },
+  { code:'3ה',  name:'3 בעיטות – צידית רגל אחורית',       desc:'בעיטה צידית עם הרגל האחורית, 3 ברצף. דורש סיבוב ירך גדול יותר מאשר 3ג.',                sets:'3 סטים', reps:'8 × רגל', time:'5 דקות' },
+  { code:'4א',  name:'אגרוף – חסימה – אגרוף סיבובי – כניסה', desc:'4 תנועות: אגרוף קדמי ← חסימה פנימה ← backfist סיבובי ← צעד כניסה. זרום בין התנועות.',   sets:'4 סטים', reps:'8 רצפים', time:'7 דקות' },
+  { code:'4ב',  name:'4 בעיטות: סיבובית, סיבובית אחורית, נמוכה, אחורית', desc:'Roundhouse ← spinning back ← low roundhouse ← back kick. בנה מהירות רק אחרי שהרצף זורם.',  sets:'3 סטים', reps:'5 × צד', time:'7 דקות' },
+  { code:'4ג',  name:'5 בעיטות: סיבובית, סיבובית אחורית, נמוכה, אחורית, צידית', desc:'כמו 4ב + בעיטה צידית ברגל הקדמית. הקומבינציה הארוכה ביותר – קצב עצמך.',              sets:'3 סטים', reps:'4 × צד', time:'8 דקות' },
+  { code:'6א',  name:'הסטה',                               desc:'תרגיל הסטה והתחמקות. הסט את המשקל והפנה כוח נכנס עם תנועה מינימלית.',                     sets:'3 סטים', reps:'60 שניות', time:'5 דקות' },
+  { code:'7א',  name:'תרגיל אגרופים 7א',                   desc:'קומבינציית אגרופים. תרגל בדיוק כפי שנלמד בשיעור. דגש על מכניקה נכונה לפני מהירות.',      sets:'3 סטים', reps:'12 חזרות', time:'5 דקות' },
+  { code:'8א',  name:'תרגיל פתיחת סוס',                    desc:'מתחיל בעמידת סוס. בצע את הרצף המלא כפי שנלמד – מעברים, מכות ותנועות רגליים.',           sets:'3 סטים', reps:'5 חזרות', time:'6 דקות' },
+];
+
+const DRILL_MINS  = 5;
+const FORM_MINS   = 8;
+const TIME_PRESETS = [20, 30, 45, 60, 90];
+
+// ── STATE ──────────────────────────────────────────────
+let sessionMins    = 30;
+let currentSession = null;
+let doneTasks      = {};
+let blockTimers    = {};
+let history        = [];
+let timerSecs      = 30 * 60;
+let timerRunning   = false;
+let timerInterval  = null;
+let audioCtx       = null;
+
+// ── AUDIO ──────────────────────────────────────────────
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playGong() {
+  try {
+    const ctx = getAudio();
+    const t = ctx.currentTime;
+    const dur = 3.5;
+    [[110, 85, 0.6], [220, 170, 0.28], [440, 440, 0.12]].forEach(([f1, f2, vol]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f1, t);
+      if (f1 !== f2) osc.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      gain.gain.setValueAtTime(vol, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.85);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(t); osc.stop(t + dur);
+    });
+  } catch(e) {}
+}
+
+// ── INIT ──────────────────────────────────────────────
+function init() {
+  // date
+  document.getElementById('dateDisplay').textContent =
+    new Date().toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // load saved data
+  try {
+    const s = JSON.parse(localStorage.getItem('kf_v4') || '{}');
+    history = s.history || [];
+    if (s.streak)    document.getElementById('streakCount').textContent = s.streak;
+    if (s.sessionMins) { sessionMins = s.sessionMins; timerSecs = sessionMins * 60; }
+  } catch(e) {}
+
+  buildTimePresets();
+  document.getElementById('timeSlider').value = sessionMins;
+  document.getElementById('timeValue').textContent = sessionMins + ' דקות';
+  document.getElementById('timerDisplay').textContent = fmt(timerSecs);
+  buildTimerPresets();
+  renderHistory();
+  bindEvents();
+}
+
+// ── EVENTS (no onclick attrs — works on mobile) ────────
+function bindEvents() {
+  // tabs
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // slider
+  document.getElementById('timeSlider').addEventListener('input', function() {
+    sessionMins = parseInt(this.value);
+    document.getElementById('timeValue').textContent = sessionMins + ' דקות';
+    highlightPreset();
+    clearSession();
+  });
+
+  // generate
+  document.getElementById('generateBtn').addEventListener('click', () => {
+    getAudio(); // warm up audio on first interaction
+    generateSession();
+  });
+
+  // save
+  document.getElementById('saveBtn').addEventListener('click', saveDay);
+
+  // timer buttons
+  document.getElementById('btnStart').addEventListener('click', startTimer);
+  document.getElementById('btnPause').addEventListener('click', pauseTimer);
+  document.getElementById('btnReset').addEventListener('click', resetTimer);
+}
+
+// ── TIME PRESETS ───────────────────────────────────────
+function buildTimePresets() {
+  const wrap = document.getElementById('timePresets');
+  wrap.innerHTML = '';
+  TIME_PRESETS.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'time-preset' + (t === sessionMins ? ' active' : '');
+    btn.textContent = t < 60 ? t + ' דקות' : t === 60 ? 'שעה' : 'שעה וחצי';
+    btn.dataset.mins = t;
+    btn.addEventListener('click', () => {
+      sessionMins = t;
+      document.getElementById('timeSlider').value = t;
+      document.getElementById('timeValue').textContent = t + ' דקות';
+      highlightPreset();
+      clearSession();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+function highlightPreset() {
+  document.querySelectorAll('.time-preset').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.mins) === sessionMins);
+  });
+}
+
+// ── SESSION ────────────────────────────────────────────
+function clearSession() {
+  Object.values(blockTimers).forEach(clearInterval);
+  blockTimers = {};
+  currentSession = null;
+  doneTasks = {};
+  document.getElementById('sessionBlocks').innerHTML = '';
+  document.getElementById('saveBtn').style.display = 'none';
+  document.getElementById('generateBtn').textContent = '🎲 צור אימון להיום';
+}
+
+function buildPlan(mins) {
+  const warmup   = mins <= 25 ? 3 : 5;
+  const stances  = mins <= 25 ? 3 : 5;
+  const cooldown = mins <= 25 ? 2 : 3;
+  const remaining = mins - warmup - stances - cooldown;
+
+  const numForms  = mins < 45 ? 1 : mins < 76 ? 2 : 3;
+  const numDrills = Math.max(1, Math.floor((remaining - numForms * FORM_MINS) / DRILL_MINS));
+
+  const drills = [...DRILLS].sort(() => Math.random() - 0.5).slice(0, numDrills);
+  const forms  = [...FORMS].sort(() => Math.random() - 0.5).slice(0, numForms);
+
+  return [
+    { id:'warmup',   icon:'🔥', name:'חימום',       mins:warmup,              type:'simple', desc:'קפיצות, סיבובי מפרקים, מתיחות דינמיות לרגליים וכתפיים.' },
+    { id:'stances',  icon:'🦵', name:'עמידות בסיס', mins:stances,             type:'simple', desc:'סוס · סוס אחורי · דרקון · מספריים · חתול — החזק 30 שניות כל עמידה, עבור פעמיים.' },
+    { id:'drills',   icon:'👊', name:'תרגילים',     mins:numDrills*DRILL_MINS, type:'drills', drills },
+    { id:'forms',    icon:'🌊', name:'תבניות',      mins:numForms*FORM_MINS,  type:'forms',  forms },
+    { id:'cooldown', icon:'🧘', name:'הרפיה',       mins:cooldown,            type:'simple', desc:'מתיחות סטטיות, נשימות עמוקות, גלגולי צוואר וירכיים.' },
+  ];
+}
+
+function generateSession() {
+  clearSession();
+  currentSession = buildPlan(sessionMins);
+  doneTasks = {};
+
+  const container = document.getElementById('sessionBlocks');
+
+  // progress bar
+  const prog = document.createElement('div');
+  prog.className = 'progress-wrap';
+  prog.innerHTML = `
+    <div class="progress-label"><span>התקדמות האימון</span><span id="progressText">0 / ${currentSession.length}</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+  `;
+  container.appendChild(prog);
+
+  currentSession.forEach(block => {
+    const el = document.createElement('div');
+    el.className = 'session-block';
+    el.id = 'block-' + block.id;
+
+    let bodyHTML = '';
+    if (block.type === 'simple') {
+      bodyHTML = `<div class="block-body"><div class="block-simple-desc">${block.desc}</div></div>`;
+    } else if (block.type === 'drills') {
+      bodyHTML = '<div class="block-body">' + block.drills.map(d => `
+        <div class="drill-card">
+          <div class="drill-code">${d.code}</div>
+          <div>
+            <div class="drill-name">${d.name}</div>
+            <div class="drill-desc">${d.desc}</div>
+            <div class="drill-tags">
+              <span class="drill-tag">⏱ ${d.time}</span>
+              <span class="drill-tag">🔁 ${d.sets}</span>
+              <span class="drill-tag">✖ ${d.reps}</span>
+            </div>
+          </div>
+        </div>`).join('') + '</div>';
+    } else if (block.type === 'forms') {
+      bodyHTML = '<div class="block-body">' + block.forms.map(f => `
+        <div class="form-card">
+          <div class="form-card-name">${f.emoji}  ${f.name}</div>
+          <div class="form-card-sub">${f.sub} — תרגל לאט × 3, לאחר מכן מהיר × 1</div>
+        </div>`).join('') + '</div>';
+    }
+
+    const meta = block.type === 'drills'
+      ? block.drills.length + (block.drills.length === 1 ? ' תרגיל' : ' תרגילים')
+      : block.type === 'forms'
+        ? block.forms.length + (block.forms.length === 1 ? ' תבנית' : ' תבניות')
+        : '';
+
+    el.innerHTML = `
+      <div class="session-block-header" data-id="${block.id}">
+        <div class="block-check"></div>
+        <div class="block-icon">${block.icon}</div>
+        <div class="block-info">
+          <div class="block-name">${block.name}</div>
+          <div class="block-meta">${meta}</div>
+        </div>
+        <div class="block-duration">${block.mins} דקות</div>
+      </div>
+      <div class="block-timer" id="timer-${block.id}">
+        <div class="block-timer-bar-bg"><div class="block-timer-bar" id="timerbar-${block.id}"></div></div>
+        <div class="block-timer-label" id="timerlabel-${block.id}">⏱ ${block.mins}:00</div>
+      </div>
+      ${bodyHTML}
+    `;
+
+    // attach click via addEventListener
+    el.querySelector('.session-block-header').addEventListener('click', () => toggleBlock(block.id));
+    container.appendChild(el);
+  });
+
+  document.getElementById('saveBtn').style.display = 'block';
+  document.getElementById('generateBtn').textContent = '🔄 צור אימון חדש';
+
+  // start first block timer
+  const first = currentSession[0];
+  setTimeout(() => startBlockTimer(first.id, first.mins), 200);
+}
+
+function toggleBlock(id) {
+  doneTasks[id] = !doneTasks[id];
+  const el  = document.getElementById('block-' + id);
+  const chk = el.querySelector('.block-check');
+  el.classList.toggle('done', doneTasks[id]);
+  chk.textContent = doneTasks[id] ? '✓' : '';
+
+  if (doneTasks[id]) {
+    stopBlockTimer(id);
+    playGong();
+    // start next block timer
+    const idx = currentSession.findIndex(b => b.id === id);
+    if (idx >= 0 && idx < currentSession.length - 1) {
+      const next = currentSession[idx + 1];
+      if (!doneTasks[next.id]) startBlockTimer(next.id, next.mins);
+    }
+  } else {
+    stopBlockTimer(id);
+  }
+
+  const done  = Object.values(doneTasks).filter(Boolean).length;
+  const total = currentSession.length;
+  const pt = document.getElementById('progressText');
+  const pb = document.getElementById('progressBar');
+  if (pt) pt.textContent = done + ' / ' + total;
+  if (pb) pb.style.width = (done / total * 100) + '%';
+}
+
+// ── BLOCK TIMERS ───────────────────────────────────────
+function startBlockTimer(id, totalMins) {
+  stopBlockTimer(id);
+  const totalSecs = totalMins * 60;
+  let elapsed = 0;
+  const timerEl = document.getElementById('timer-' + id);
+  const barEl   = document.getElementById('timerbar-' + id);
+  const lblEl   = document.getElementById('timerlabel-' + id);
+  const blockEl = document.getElementById('block-' + id);
+  if (!timerEl) return;
+  timerEl.classList.add('running');
+  if (blockEl) blockEl.classList.add('active-timer');
+
+  blockTimers[id] = setInterval(() => {
+    elapsed++;
+    const rem = totalSecs - elapsed;
+    if (barEl) barEl.style.width = Math.max(0, rem / totalSecs * 100) + '%';
+    if (lblEl) lblEl.textContent = '⏱ ' + fmt(Math.max(0, rem));
+    if (rem <= 0) {
+      stopBlockTimer(id);
+      if (lblEl) lblEl.textContent = '✅ הסתיים';
+      if (barEl) barEl.style.width = '0%';
+      if (blockEl) blockEl.classList.remove('active-timer');
+      playGong();
+    }
+  }, 1000);
+}
+
+function stopBlockTimer(id) {
+  if (blockTimers[id]) { clearInterval(blockTimers[id]); delete blockTimers[id]; }
+  const timerEl = document.getElementById('timer-' + id);
+  const blockEl = document.getElementById('block-' + id);
+  if (timerEl) timerEl.classList.remove('running');
+  if (blockEl) blockEl.classList.remove('active-timer');
+}
+
+// ── SAVE ──────────────────────────────────────────────
+function saveDay() {
+  if (!currentSession) return;
+  const today = new Date().toLocaleDateString('he-IL');
+  const done  = Object.values(doneTasks).filter(Boolean).length;
+  const db = currentSession.find(b => b.type === 'drills');
+  const fb = currentSession.find(b => b.type === 'forms');
+  history.unshift({
+    date: today, done, total: currentSession.length,
+    drills: db ? db.drills.map(d => d.code).join(', ') : '',
+    forms:  fb ? fb.forms.map(f => f.name).join(', ')  : '',
+    mins: sessionMins
+  });
+
+  let streak = 1;
+  try {
+    const s = JSON.parse(localStorage.getItem('kf_v4') || '{}');
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    if (s.lastDate === yesterday.toLocaleDateString('he-IL')) streak = (s.streak || 0) + 1;
+    else if (s.lastDate === today) streak = s.streak || 1;
+    localStorage.setItem('kf_v4', JSON.stringify({ history, streak, lastDate: today, sessionMins }));
+  } catch(e) {}
+
+  document.getElementById('streakCount').textContent = streak;
+  renderHistory();
+  showToast('💾 האימון נשמר!');
+}
+
+// ── HISTORY ───────────────────────────────────────────
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  if (!history.length) return;
+  el.innerHTML = history.slice(0, 12).map(h => `
+    <div class="history-item">
+      <div>
+        <div class="history-main">${h.date} · ${h.mins || '?'} דקות</div>
+        <div class="history-sub">${h.forms ? '🌊 ' + h.forms : ''}${h.drills ? ' 👊 ' + h.drills : ''}</div>
+      </div>
+      <div class="history-score">${h.done}/${h.total} ✅</div>
+    </div>`).join('');
+}
+
+// ── TIMER ─────────────────────────────────────────────
+function buildTimerPresets() {
+  const wrap = document.getElementById('timerPresets');
+  [20, 30, 45, 60, 90].forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost btn-small';
+    btn.textContent = t < 60 ? t + ' דקות' : t === 60 ? 'שעה' : 'שעה וחצי';
+    btn.addEventListener('click', () => setTimer(t));
+    wrap.appendChild(btn);
+  });
+}
+
+function fmt(s) {
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function startTimer() {
+  if (timerRunning) return;
+  getAudio();
+  timerRunning = true;
+  document.getElementById('timerStatus').textContent = 'מתאמן...';
+  document.getElementById('timerDisplay').classList.add('active');
+  timerInterval = setInterval(() => {
+    timerSecs--;
+    document.getElementById('timerDisplay').textContent = fmt(timerSecs);
+    if (timerSecs <= 0) {
+      clearInterval(timerInterval); timerRunning = false;
+      document.getElementById('timerStatus').textContent = 'סיימת! 🔥';
+      document.getElementById('timerDisplay').classList.remove('active');
+      playGong();
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval); timerRunning = false;
+  document.getElementById('timerStatus').textContent = 'מושהה';
+  document.getElementById('timerDisplay').classList.remove('active');
+}
+
+function resetTimer() {
+  pauseTimer();
+  timerSecs = sessionMins * 60;
+  document.getElementById('timerDisplay').textContent = fmt(timerSecs);
+  document.getElementById('timerStatus').textContent = 'מוכן';
+}
+
+function setTimer(mins) {
+  pauseTimer();
+  timerSecs = mins * 60;
+  document.getElementById('timerDisplay').textContent = fmt(timerSecs);
+  document.getElementById('timerStatus').textContent = 'מוכן';
+}
+
+// ── TOAST ─────────────────────────────────────────────
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+init();
+
+
+</script>
+</body>
+</html>
