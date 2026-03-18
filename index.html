@@ -326,7 +326,7 @@ let doneTasks      = {};
 let audioCtx       = null;
 let stancesInterval = null;
 let stancesRunning  = false;
-const STANCES_TOTAL = 4 * 60;
+const STANCES_TOTAL = 5.5 * 60; // 5:30
 let stancesSecs     = STANCES_TOTAL;
 
 // ── AUDIO ──────────────────────────────────────────────
@@ -477,7 +477,7 @@ function generateSession() {
           <div class="block-simple-desc">${block.desc}</div>
         </div>
         <div class="stances-timer" id="stances-timer">
-          <div class="stances-display" id="stances-display">4:00</div>
+          <div class="stances-display" id="stances-display">5:30</div>
           <div class="stances-sub" id="stances-sub">מוכן</div>
           <div class="stances-progress-bg"><div class="stances-progress-fill" id="stances-bar"></div></div>
           <div class="stances-btns">
