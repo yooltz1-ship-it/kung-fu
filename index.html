@@ -351,25 +351,55 @@ const STANCES_TOTAL = 5.5 * 60; // 5:30
 let stancesSecs     = STANCES_TOTAL;
 
 // ── AUDIO ──────────────────────────────────────────────
+let gongBuffer      = null;
+let smallGongBuffer = null;
+
 function getAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
 
-function playGong() {
+function b64ToArrayBuffer(b64) {
+  const bin = atob(b64);
+  const buf = new ArrayBuffer(bin.length);
+  const view = new Uint8Array(buf);
+  for (let i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i);
+  return buf;
+}
+
+function preloadAudio() {
+  const ctx = getAudio();
+  if (!gongBuffer) {
+    ctx.decodeAudioData(b64ToArrayBuffer(AUDIO_FINAL_B64)).then(buf => { gongBuffer = buf; }).catch(() => {});
+  }
+  if (!smallGongBuffer) {
+    ctx.decodeAudioData(b64ToArrayBuffer(AUDIO_30SEC_B64)).then(buf => { smallGongBuffer = buf; }).catch(() => {});
+  }
+}
+
+function playBuffer(buffer) {
   try {
-    const audio = new Audio('data:audio/mp3;base64,' + AUDIO_FINAL_B64);
-    audio.play();
-    // visual finish flash (only on stances timer, not block-complete)
-    const timer = document.getElementById('stances-timer');
-    if (timer) {
-      timer.classList.remove('finish-flash');
-      void timer.offsetWidth;
-      timer.classList.add('finish-flash');
-      timer.addEventListener('animationend', () => timer.classList.remove('finish-flash'), { once: true });
-    }
+    const ctx = getAudio();
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    src.start(0);
   } catch(e) {}
+}
+
+function playGong() {
+  if (gongBuffer) {
+    playBuffer(gongBuffer);
+  }
+  // visual finish flash (only on stances timer, not block-complete)
+  const timer = document.getElementById('stances-timer');
+  if (timer) {
+    timer.classList.remove('finish-flash');
+    void timer.offsetWidth;
+    timer.classList.add('finish-flash');
+    timer.addEventListener('animationend', () => timer.classList.remove('finish-flash'), { once: true });
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────
@@ -400,7 +430,7 @@ function bindEvents() {
   });
 
   document.getElementById('generateBtn').addEventListener('click', () => {
-    getAudio();
+    preloadAudio();
     generateSession();
   });
 }
@@ -568,23 +598,20 @@ function fmtSecs(s) {
 }
 
 function playSmallGong() {
-  try {
-    const audio = new Audio('data:audio/mp3;base64,' + AUDIO_30SEC_B64);
-    audio.play();
-    // visual flash
-    const timer = document.getElementById('stances-timer');
-    if (timer) {
-      timer.classList.remove('gong-flash');
-      void timer.offsetWidth;
-      timer.classList.add('gong-flash');
-      timer.addEventListener('animationend', () => timer.classList.remove('gong-flash'), { once: true });
-    }
-  } catch(e) {}
+  if (smallGongBuffer) playBuffer(smallGongBuffer);
+  // visual flash
+  const timer = document.getElementById('stances-timer');
+  if (timer) {
+    timer.classList.remove('gong-flash');
+    void timer.offsetWidth;
+    timer.classList.add('gong-flash');
+    timer.addEventListener('animationend', () => timer.classList.remove('gong-flash'), { once: true });
+  }
 }
 
 function stancesStart() {
   if (stancesRunning) return;
-  getAudio();
+  preloadAudio();
   stancesRunning = true;
   const startBtn = document.getElementById('stances-start');
   if (startBtn) startBtn.textContent = '⏸ עצור';
