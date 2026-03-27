@@ -356,6 +356,33 @@ let stancesRunning  = false;
 const STANCES_TOTAL = 5.5 * 60; // 5:30
 let stancesSecs     = STANCES_TOTAL;
 
+// ── WAKE LOCK ──────────────────────────────────────────
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch (err) {}
+}
+
+async function releaseWakeLock() {
+  try {
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (err) {}
+}
+
+// Re-acquire wake lock if page becomes visible again while timer is running
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && stancesRunning) {
+    requestWakeLock();
+  }
+});
+
 // ── AUDIO ──────────────────────────────────────────────
 let gongBuffer      = null;
 let smallGongBuffer = null;
@@ -618,6 +645,7 @@ function playSmallGong() {
 function stancesStart() {
   if (stancesRunning) return;
   preloadAudio();
+  requestWakeLock();
   stancesRunning = true;
   const startBtn = document.getElementById('stances-start');
   if (startBtn) startBtn.textContent = '⏸ עצור';
@@ -640,6 +668,7 @@ function stancesStart() {
     if (stancesSecs <= 0) {
       clearInterval(stancesInterval);
       stancesRunning = false;
+      releaseWakeLock();
       if (disp) { disp.textContent = '0:00'; disp.classList.remove('running'); disp.classList.add('finished'); }
       if (bar)  bar.style.width = '0%';
       if (sub)  sub.textContent = '🔔 סיימת!';
@@ -653,6 +682,7 @@ function stancesStart() {
 function stancesPause() {
   clearInterval(stancesInterval);
   stancesRunning = false;
+  releaseWakeLock();
   const startBtn = document.getElementById('stances-start');
   if (startBtn) { startBtn.textContent = '▶ המשך'; startBtn.removeEventListener('click', stancesPause); startBtn.addEventListener('click', stancesStart); }
   const sub = document.getElementById('stances-sub');
@@ -664,6 +694,7 @@ function stancesPause() {
 function stancesReset() {
   clearInterval(stancesInterval);
   stancesRunning = false;
+  releaseWakeLock();
   stancesSecs = STANCES_TOTAL;
   const disp = document.getElementById('stances-display');
   const bar  = document.getElementById('stances-bar');
